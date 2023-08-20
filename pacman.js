@@ -9,8 +9,9 @@ class Pacman {
         this.nextDirection = 4;
         this.frameCount = 7;
         this.currentFrame = 1;
-
-        this.animationInterval = setInterval(() => this.changeAnimation(), 100);
+        setInterval(() => {
+            this.changeAnimation();
+        }, 100);
     }
 
     moveProcess() {
@@ -25,7 +26,11 @@ class Pacman {
     eat() {
         for (let i = 0; i < map.length; i++) {
             for (let j = 0; j < map[0].length; j++) {
-                if (map[i][j] === 2 && this.getMapX() === j && this.getMapY() === i) {
+                if (
+                    map[i][j] == 2 &&
+                    this.getMapX() == j &&
+                    this.getMapY() == i
+                ) {
                     map[i][j] = 3;
                     score++;
                 }
@@ -35,16 +40,16 @@ class Pacman {
 
     moveBackwards() {
         switch (this.direction) {
-            case DIRECTION_RIGHT:
+            case DIRECTION_RIGHT: // Right
                 this.x -= this.speed;
                 break;
-            case DIRECTION_UP:
+            case DIRECTION_UP: // Up
                 this.y += this.speed;
                 break;
-            case DIRECTION_LEFT:
+            case DIRECTION_LEFT: // Left
                 this.x += this.speed;
                 break;
-            case DIRECTION_BOTTOM:
+            case DIRECTION_BOTTOM: // Bottom
                 this.y -= this.speed;
                 break;
         }
@@ -52,47 +57,60 @@ class Pacman {
 
     moveForwards() {
         switch (this.direction) {
-            case DIRECTION_RIGHT:
+            case DIRECTION_RIGHT: // Right
                 this.x += this.speed;
                 break;
-            case DIRECTION_UP:
+            case DIRECTION_UP: // Up
                 this.y -= this.speed;
                 break;
-            case DIRECTION_LEFT:
+            case DIRECTION_LEFT: // Left
                 this.x -= this.speed;
                 break;
-            case DIRECTION_BOTTOM:
+            case DIRECTION_BOTTOM: // Bottom
                 this.y += this.speed;
                 break;
         }
     }
 
     checkCollisions() {
-        const positions = [
-            [0, 0],
-            [0.9999, 0],
-            [0, 0.9999],
-            [0.9999, 0.9999]
-        ];
-
-        return positions.some(([dx, dy]) => {
-            const xIndex = parseInt((this.x + dx * this.width) / oneBlockSize);
-            const yIndex = parseInt((this.y + dy * this.height) / oneBlockSize);
-            return map[yIndex][xIndex] === 1;
-        });
+        let isCollided = false;
+        if (
+            map[parseInt(this.y / oneBlockSize)][
+                parseInt(this.x / oneBlockSize)
+            ] == 1 ||
+            map[parseInt(this.y / oneBlockSize + 0.9999)][
+                parseInt(this.x / oneBlockSize)
+            ] == 1 ||
+            map[parseInt(this.y / oneBlockSize)][
+                parseInt(this.x / oneBlockSize + 0.9999)
+            ] == 1 ||
+            map[parseInt(this.y / oneBlockSize + 0.9999)][
+                parseInt(this.x / oneBlockSize + 0.9999)
+            ] == 1
+        ) {
+            isCollided = true;
+        }
+        return isCollided;
     }
 
     checkGhostCollision(ghosts) {
-        return ghosts.some(ghost => ghost.getMapX() === this.getMapX() && ghost.getMapY() === this.getMapY());
+        for (let i = 0; i < ghosts.length; i++) {
+            let ghost = ghosts[i];
+            if (
+                ghost.getMapX() == this.getMapX() &&
+                ghost.getMapY() == this.getMapY()
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     changeDirectionIfPossible() {
-        if (this.direction === this.nextDirection) return;
-
-        const tempDirection = this.direction;
+        if (this.direction == this.nextDirection) return;
+        let tempDirection = this.direction;
         this.direction = this.nextDirection;
         this.moveForwards();
-
         if (this.checkCollisions()) {
             this.moveBackwards();
             this.direction = tempDirection;
@@ -101,28 +119,42 @@ class Pacman {
         }
     }
 
-    getMapX(offset = 0) {
-        return parseInt((this.x + offset * this.width) / oneBlockSize);
+    getMapX() {
+        let mapX = parseInt(this.x / oneBlockSize);
+        return mapX;
     }
 
-    getMapY(offset = 0) {
-        return parseInt((this.y + offset * this.height) / oneBlockSize);
+    getMapY() {
+        let mapY = parseInt(this.y / oneBlockSize);
+
+        return mapY;
+    }
+
+    getMapXRightSide() {
+        let mapX = parseInt((this.x * 0.99 + oneBlockSize) / oneBlockSize);
+        return mapX;
+    }
+
+    getMapYRightSide() {
+        let mapY = parseInt((this.y * 0.99 + oneBlockSize) / oneBlockSize);
+        return mapY;
     }
 
     changeAnimation() {
-        this.currentFrame = (this.currentFrame % this.frameCount) + 1;
+        this.currentFrame =
+            this.currentFrame == this.frameCount ? 1 : this.currentFrame + 1;
     }
 
     draw() {
         canvasContext.save();
         canvasContext.translate(
-            this.x + this.width / 2,
-            this.y + this.height / 2
+            this.x + oneBlockSize / 2,
+            this.y + oneBlockSize / 2
         );
         canvasContext.rotate((this.direction * 90 * Math.PI) / 180);
         canvasContext.translate(
-            -this.x - this.width / 2,
-            -this.y - this.height / 2
+            -this.x - oneBlockSize / 2,
+            -this.y - oneBlockSize / 2
         );
         canvasContext.drawImage(
             pacmanFrames,
